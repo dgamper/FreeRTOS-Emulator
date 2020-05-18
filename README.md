@@ -30,6 +30,8 @@ The simulator uses the SDL2 graphics libraries.
 
 ### Debian/Ubuntu
 
+Assuming that you have some basic utilities like `make`, `cmake` and `git` already installed, execute:
+
 ```bash
 sudo apt-get install libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-image-dev libsdl2-gfx-dev libsdl2-dev
 ```
@@ -75,6 +77,17 @@ to generate the appropriate project files to allow for the emulator to be import
 
 ### Additional targets
 
+#### Documentation
+
+Doxygen documentation, found in the [docs](docs) folder, can be generated from cmake/make by passing the variable `DOCS=on` and making the target `docs`.
+
+``` bash
+cmake -DDOCS=on ..
+make docs
+```
+
+#### Tests
+
 In [`test.cmake`](cmake/test.cmake) a number of extra targets are provided to help with linting.
 
 #### Git --check
@@ -93,6 +106,18 @@ make format
 ```
 
 Invokes the Astyle formatter.
+
+**Warning:** The default version of CMake which is installed f.e. on Ubuntu 16.04 will throw an arror when running make to setup the `bin/astyle` binary. Please upgrade to a newrer version manually if required:
+
+```bash
+VERSION=3.16
+BUILD=5
+wget -q https://cmake.org/files/v$VERSION/cmake-$VERSION.$BUILD-Linux-x86_64.sh
+mkdir /opt/cmake
+sh cmake-$VERSION.$BUILD-Linux-x86_64.sh --prefix=/opt/cmake --skip-license --exclude-subdir
+ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
+rm cmake-$VERSION.$BUILD-Linux-x86_64.sh
+```
 
 #### Clang Tidy
 

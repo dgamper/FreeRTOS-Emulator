@@ -37,25 +37,7 @@
 #ifndef __TUM_DRAW_H__
 #define __TUM_DRAW_H__
 
-#include "FreeRTOS.h"
-#include "semphr.h"
-
 #define WINDOW_TITLE "FreeRTOS Emulator"
-
-/**
- * Defines the default font size used by the SDL TTF library
- */
-#define DEFAULT_FONT_SIZE 15
-
-/**
- * Default font to be used by the SDL TTF library
- */
-#define DEFAULT_FONT "IBMPlexSans-Medium.ttf"
-/**
- * Location of font TTF files
- */
-#define FONTS_LOCATION "/../resources/fonts/"
-#define FONT_LOCATION FONTS_LOCATION DEFAULT_FONT
 
 /**
  * Sets the width (in pixels) of the screen
@@ -67,18 +49,15 @@
 #define SCREEN_HEIGHT 480
 
 /**
- * Defines a generic priority for tasks to use
- */
-#define mainGENERIC_PRIORITY (tskIDLE_PRIORITY)
-/**
- * Defines a generic stack size for tasks to use
- */
-#define mainGENERIC_STACK_SIZE ((unsigned short)2560)
-
-/**
- * @defgroup tum_draw TUM Draw API
+ * @defgroup tum_draw TUM Drawing API
  *
- * Functions to draw various shapes and lines on the screen
+ * @brief A simple interface to draw graphical primitives and images in a
+ * multi-threaded application
+ *
+ * This API allows for the creation of various draw jobs and image management
+ * that enables thread-safe drawing using the inherently single-threaded
+ * SDL2 graphics library.
+ *
  * @{
  */
 
@@ -137,32 +116,32 @@ char *tumGetErrorMessage(void);
  * located
  * @return 0 on success
  */
-int vInitDrawing(char *path);
+int tumDrawInit(char *path);
 
 /**
  * @brief Transfers the drawing ability to the calling thread/taskd
  *
  * @return 0 on success
  */
-int vBindDrawing(void);
+int tumDrawBindThread(void);
 
 /**
  * @brief Exits the TUM Draw backend
  *
  * @return NULL always returns NULL
  */
-void vExitDrawing(void);
+void tumDrawExit(void);
 
 /**
  * @brief Executes the queued draw jobs
  *
  * The tumDraw functions are designed to be callable from any thread, as such
- * each function queues a draw job into a queue. Once vDrawUpdateScreen is called,
+ * each function queues a draw job into a queue. Once tumDrawUpdateScreen is called,
  * the queued draw jobs are executed by the background SDL thread.
  *
  * @returns 0 on success
  */
-int vDrawUpdateScreen(void);
+int tumDrawUpdateScreen(void);
 
 /**
  * @brief Sets the screen to a solid colour
@@ -348,9 +327,13 @@ int tumDrawScaledImage(char *filename, signed short x, signed short y,
 int tumDrawArrow(signed short x1, signed short y1, signed short x2,
                  signed short y2, signed short head_length,
                  unsigned char thickness, unsigned int colour);
+<<<<<<< HEAD
 
 /**
  * @}
  */
+=======
+>>>>>>> 8dc0998024ca6d3b6b891418268f8fecba4e30a3
 
+/** @} */
 #endif

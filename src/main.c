@@ -16,6 +16,7 @@
 #include "TUM_Event.h"
 #include "TUM_Sound.h"
 #include "TUM_Utils.h"
+#include "TUM_Font.h"
 
 #include "AsyncIO.h"
 
@@ -34,6 +35,7 @@ static buttons_buffer_t buttons = { 0 };
 void xGetButtonInput(void)
 {
     if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) {
+<<<<<<< HEAD
         xQueueReceive(inputQueue, &buttons.buttons, 0);
         xSemaphoreGive(buttons.lock);
     }
@@ -68,6 +70,43 @@ void vDemoTask(void *pvParameters)
             }
         }
         xSemaphoreGive(buttons.lock);
+=======
+        xQueueReceive(buttonInputQueue, &buttons.buttons, 0);
+        xSemaphoreGive(buttons.lock);
+    }
+}
+
+#define KEYCODE(CHAR) SDL_SCANCODE_##CHAR
+
+void vDemoTask(void *pvParameters)
+{
+    // structure to store time retrieved from Linux kernel
+    static struct timespec the_time;
+    static char our_time_string[100];
+    static int our_time_strings_width = 0;
+
+    // Needed such that Gfx library knows which thread controlls drawing
+    // Only one thread can call tumDrawUpdateScreen while and thread can call
+    // the drawing functions to draw objects. This is a limitation of the SDL
+    // backend.
+    tumDrawBindThread();
+
+    while (1) {
+        tumEventFetchEvents(); // Query events backend for new events, ie. button presses
+        xGetButtonInput(); // Update global input
+
+        // `buttons` is a global shared variable and as such needs to be
+        // guarded with a mutex, mutex must be obtained before accessing the
+        // resource and given back when you're finished. If the mutex is not
+        // given back then no other task can access the reseource.
+        if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) {
+            if (buttons.buttons[KEYCODE(
+                                    Q)]) { // Equiv to SDL_SCANCODE_Q
+                exit(EXIT_SUCCESS);
+            }
+            xSemaphoreGive(buttons.lock);
+        }
+>>>>>>> 8dc0998024ca6d3b6b891418268f8fecba4e30a3
 
         tumDrawClear(White); // Clear screen
 
@@ -80,44 +119,59 @@ void vDemoTask(void *pvParameters)
                 (long int)the_time.tv_sec);
 
         // Get the width of the string on the screen so we can center it
+<<<<<<< HEAD
         if (!tumGetTextSize(
                 (char *)our_time_string, &our_time_strings_width,
                 NULL)) // Returns 0 if width was successfully obtained
+=======
+        // Returns 0 if width was successfully obtained
+        if (!tumGetTextSize((char *)our_time_string,
+                            &our_time_strings_width, NULL))
+>>>>>>> 8dc0998024ca6d3b6b891418268f8fecba4e30a3
             tumDrawText(our_time_string,
                         SCREEN_WIDTH / 2 -
                         our_time_strings_width / 2,
                         SCREEN_HEIGHT / 2 - DEFAULT_FONT_SIZE / 2,
                         TUMBlue);
 
+<<<<<<< HEAD
         vDrawUpdateScreen(); // Refresh the screen to draw string
 
         vTaskDelay(
             (TickType_t)1000); // Basic sleep of 1000 milliseconds
+=======
+        tumDrawUpdateScreen(); // Refresh the screen to draw string
+
+        // Basic sleep of 1000 milliseconds
+        vTaskDelay((TickType_t)1000);
+>>>>>>> 8dc0998024ca6d3b6b891418268f8fecba4e30a3
     }
 }
 
 int main(int argc, char *argv[])
 {
-    char *bin_folder_path = getBinFolderPath(argv[0]);
+    char *bin_folder_path = tumUtilGetBinFolderPath(argv[0]);
 
     printf("Initializing: ");
 
+<<<<<<< HEAD
     if (vInitDrawing(bin_folder_path)) {
+=======
+    if (tumDrawInit(bin_folder_path)) {
+>>>>>>> 8dc0998024ca6d3b6b891418268f8fecba4e30a3
         PRINT_ERROR("Failed to initialize drawing");
         goto err_init_drawing;
     }
 
-    if (vInitEvents()) {
+    if (tumEventInit()) {
         PRINT_ERROR("Failed to initialize events");
         goto err_init_events;
     }
 
-    if (vInitAudio(bin_folder_path)) {
+    if (tumSoundInit(bin_folder_path)) {
         PRINT_ERROR("Failed to initialize audio");
         goto err_init_audio;
     }
-
-    atexit(aIODeinit);
 
     buttons.lock = xSemaphoreCreateMutex(); // Locking mechanism
     if (!buttons.lock) {
@@ -137,11 +191,11 @@ int main(int argc, char *argv[])
 err_demotask:
     vSemaphoreDelete(buttons.lock);
 err_buttons_lock:
-    vExitAudio();
+    tumSoundExit();
 err_init_audio:
-    vExitEvents();
+    tumEventExit();
 err_init_events:
-    vExitDrawing();
+    tumDrawExit();
 err_init_drawing:
     return EXIT_FAILURE;
 }
